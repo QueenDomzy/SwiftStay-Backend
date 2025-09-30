@@ -1,0 +1,68 @@
+generator client {
+provider = "prisma-client-js"
+}
+
+datasource db {
+provider = "postgresql"
+url = env("DATABASE_URL")
+}
+
+model User {
+id String @id @default(cuid())
+name String
+email String @unique
+password String
+role Role @default(GUEST)
+bookings Booking[]
+createdAt DateTime @default(now())
+}
+
+model Property {
+id String @id @default(cuid())
+name String
+location String
+price Float
+description String
+images String[]
+owner User @relation(fields: [ownerId], references: [id])
+ownerId String
+bookings Booking[]
+createdAt DateTime @default(now())
+}
+
+model Booking {
+id String @id @default(cuid())
+user User @relation(fields: [userId], references: [id])
+userId String
+property Property @relation(fields: [propertyId], references: [id])
+propertyId String
+checkIn DateTime
+checkOut DateTime
+totalCost Float
+status String @default("pending")
+createdAt DateTime @default(now())
+}
+
+model Payment {
+id String @id @default(cuid())
+booking Booking @relation(fields: [bookingId], references: [id])
+bookingId String
+amount Float
+method String
+status String @default("pending")
+createdAt DateTime @default(now())
+}
+
+model Ad {
+id String @id @default(cuid())
+title String
+content String
+isActive Boolean @default(true)
+createdAt DateTime @default(now())
+}
+
+enum Role {
+ADMIN
+HOTEL
+GUEST
+}
