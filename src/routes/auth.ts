@@ -6,7 +6,48 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 const router = Router();
 
-// Signup
+/**
+ * @swagger
+ * tags:
+ *   name: Auth
+ *   description: User authentication routes
+ */
+
+/**
+ * @swagger
+ * /api/auth/signup:
+ *   post:
+ *     summary: Create a new user account
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - email
+ *               - password
+ *               - role
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *                 enum: [user, admin]
+ *     responses:
+ *       200:
+ *         description: User created successfully
+ *       400:
+ *         description: Email already exists
+ *       500:
+ *         description: Signup failed
+ */
 router.post("/signup", async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
@@ -26,7 +67,34 @@ router.post("/signup", async (req, res) => {
   }
 });
 
-// Login
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Login a user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User logged in successfully, returns JWT token
+ *       400:
+ *         description: Invalid credentials
+ *       500:
+ *         description: Login failed
+ */
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -36,9 +104,11 @@ router.post("/login", async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).json({ error: "Invalid credentials" });
     
-    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET!, {
-      expiresIn: "7d",
-    });
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET!,
+      { expiresIn: "7d" }
+    );
     
     res.json({ token, user });
   } catch (error) {
